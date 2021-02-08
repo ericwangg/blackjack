@@ -1,8 +1,8 @@
 // Challenge 5: Black Jack 
 
 let blackjackGame = {
-    'you':{'scoreSpan': '#your-blackjack-result', 'div':'#your-box', 'score':0, 'hand':[]},
-    'dealer':{'scoreSpan':'#dealer-blackjack-result', 'div':'#dealer-box', 'score':0, 'hand':[]},
+    'you':{'scoreSpan': '#your-blackjack-result', 'div':'#your-box', 'score':0, 'hand':{}},
+    'dealer':{'scoreSpan':'#dealer-blackjack-result', 'div':'#dealer-box', 'score':0, 'hand':{}},
     'cards':['2','3','4','5','6','7','8','9','10','J','Q','K','A'],
     'cardsMap':{'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':10,'Q':10,'K':10,'A':[1,11]},
     'wins':0,
@@ -27,8 +27,10 @@ function blackjackHit(){
     if (blackjackGame['isStand'] === false){
         let card = randomCard();
         showCard(card, YOU);
+        updateHand(card, YOU);
         updateScore(card, YOU);
         showScore(YOU);
+        console.log(YOU['hand']);
     }
 }
 
@@ -43,9 +45,11 @@ async function blackjackDealer(){
             while (DEALER['score'] < 16){
                 let card = randomCard();
                 showCard(card, DEALER);
+                updateHand(card, DEALER);
                 updateScore(card, DEALER);
                 showScore(DEALER);
-                await sleep(1000);
+                console.log(DEALER['hand']);
+                await sleep(1000 * (Math.random() + 0.8)) 
             }
             blackjackGame['turnsOver'] = true;
             showResult(computeWinner());
@@ -54,6 +58,7 @@ async function blackjackDealer(){
     // console.log(blackjackGame['isStand'], blackjackGame['turnsOver']);
 }
 
+// resets round 
 function blackjackDeal(){
     // showResult(computeWinner());
     if (blackjackGame['turnsOver'] === true){
@@ -62,12 +67,16 @@ function blackjackDeal(){
         console.log(yourImages);
         for (let i = 0; i < yourImages.length; i++){
             yourImages[i].remove();
+            // YOU['hand'].pop();
         }
         for (let i = 0; i < dealerImages.length; i++){
             dealerImages[i].remove();
         }
         YOU['score'] = 0;
         DEALER['score'] = 0;
+        YOU['hand'] = {};
+        DEALER['hand'] = {};
+        
         document.querySelector('#your-blackjack-result').textContent = 0;
         document.querySelector('#dealer-blackjack-result').textContent = 0;
     
@@ -79,8 +88,7 @@ function blackjackDeal(){
     
         blackjackGame['isStand'] = false;
         blackjackGame['turnsOver'] = false;
-    
-        console.log(blackjackGame['isStand'], blackjackGame['turnsOver']);    
+
     }
 }
 
@@ -94,6 +102,7 @@ function randomSuite(){
     let suites = ['S','H','D','C'];
     return suites[randomIndex];
 }
+
 function showCard(card, activePlayer){
     if (activePlayer['score'] <= 21){
         let cardImage = document.createElement('img');
@@ -105,7 +114,13 @@ function showCard(card, activePlayer){
 }
 
 function updateScore(card, activePlayer){
-    if (card === 'A'){
+    if ((activePlayer['score'] + blackjackGame['cardsMap'][card] >= 21) && 'A' in activePlayer['hand']){
+        activePlayer['score'] -= 10;
+        activePlayer['score'] += blackjackGame['cardsMap'][card];
+        delete activePlayer['hand']['A'];
+        console.log('Ace in Hand, will bust with new card ');
+    }
+    else if (card === 'A'){
         if (activePlayer['score'] + blackjackGame['cardsMap'][card][1] <= 21){
             activePlayer['score'] += blackjackGame['cardsMap'][card][1];
         }
@@ -116,6 +131,10 @@ function updateScore(card, activePlayer){
     else{
         activePlayer['score'] += blackjackGame['cardsMap'][card];
     }
+}
+
+function updateHand(card, activePlayer){
+    activePlayer['hand'][card] = blackjackGame['cardsMap'][card];
 }
 
 function showScore(activePlayer){
