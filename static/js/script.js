@@ -89,10 +89,16 @@ function randomCard(){
     return blackjackGame['cards'][randomIndex];
 }
 
+function randomSuite(){
+    let randomIndex = Math.floor(Math.random() * 4);
+    let suites = ['S','H','D','C'];
+    return suites[randomIndex];
+}
 function showCard(card, activePlayer){
     if (activePlayer['score'] <= 21){
         let cardImage = document.createElement('img');
-        cardImage.src = `static/images/${card}H.png`;
+        let suite = randomSuite();
+        cardImage.src = `static/cards_52/${card}${suite}.png`;
         document.querySelector(activePlayer['div']).appendChild(cardImage);
         hitSound.play();
     }
